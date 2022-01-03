@@ -1,0 +1,52 @@
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+
+# User-specific files
+.Ruserdata
+
+# RStudio files
+.Rproj.user/
+
+# knitr and R markdown default cache directories
+*_cache/
+/cache/
+# Not clear if this  is needed -- older format for nested files
+**/*_cache
+
+# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
+.httr-oauth
+
+# Temporary files created by R markdown
+*.utf8.md
+*.knit.md
+
+# R Environment Variables
+.Renviron
+
+# Temporary files created by R markdown
+*.utf8.md
+*.knit.md
+
+# R Environment Variables
+.Renviron
+
+# Git hosts markdown directly, so do not want the .html version of support docs
+README.html
+**/DATA_NOTES.html
+**/DATA_SOURCES.html
+
+# Folders used to hide content from GIT
+**/drafts/
+**/sources/
+**/testing/
+**/ideas
+**/omitfromgit/
+**/royal/
+
+
+# Original data archive from Ramboll
+Original_Data/Casco Bay Sediment Data 1991_2011.zip
