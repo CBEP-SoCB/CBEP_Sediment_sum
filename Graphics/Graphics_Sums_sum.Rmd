@@ -1,64 +1,40 @@
-Graphics Based on Selected Sums and Totals of Contaminants
-================
-Curtis C. Bohlen, Casco Bay Estuary Partnership
-Revised October 19, 2020
-
--   [Introduction](#introduction)
--   [Load Libraries](#load-libraries)
--   [Load Data](#load-data)
-    -   [Folder References](#folder-references)
-    -   [Sums Data](#sums-data)
-        -   [Sums Data Caveates](#sums-data-caveates)
-        -   [Change Factor Levels](#change-factor-levels)
-        -   [Delete Unused Parameters](#delete-unused-parameters)
-        -   [Reexpress Dioxins and Furans in
-            PPB](#reexpress-dioxins-and-furans-in-ppb)
--   [Define Color Scale](#define-color-scale)
--   [Preliminary Graphics](#preliminary-graphics)
--   [Regional Graphics](#regional-graphics)
--   [Trend Graphics](#trend-graphics)
-    -   [Add Only Selected Trendlines](#add-only-selected-trendlines)
-    -   [Calculate Regression Line
-        Points](#calculate-regression-line-points)
-
+---
+title: "Graphics Based on Selected Sums and Totals of Contaminants"
+author: "Curtis C. Bohlen, Casco Bay Estuary Partnership"
+date:  "Revised January 4, 2022"
+output:
+  github_document:
+    toc: true
+    fig_width: 7
+    fig_height: 5
+---
 <img
     src="https://www.cascobayestuary.org/wp-content/uploads/2014/04/logo_sm.jpg"
     style="position:absolute;top:10px;right:50px;" />
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center',
+                      fig.width = 5, fig.height = 4,
+                      collapse = TRUE, comment = "#>")
+```
+
 # Introduction
+Casco Bay Estuary Partnership collected sediment samples in 1991, 1994, 2000,
+2001, 2002, 2010, and 2011 to look at concentrations of toxic contaminants in
+Casco Bay surface Sediments. These studies were complemented by data collected
+by under the auspices of EPA's the National Coastal Assessment (NCA) and 
+National Coastal Condition Assessment (NCCA).
 
-Casco Bay Estuary Partnership collected sediment samples in 1991, 1994,
-2000, 2001, 2002, 2010, and 2011 to look at concentrations of toxic
-contaminants in Casco Bay surface Sediments. These studies were
-complemented by data collected by under the auspices of EPA’s the
-National Coastal Assessment (NCA) and National Coastal Condition
-Assessment (NCCA).
-
-Chemicals studied included metals, polycyclic aromatic hydrocarbons
-(PAHs), polychlorinated biphenyls (PCBs), organochlorine pesticides,
-dioxins and furans, and organotins. These contaminants are all
-persistent in the marine environment.
+Chemicals studied included metals, polycyclic aromatic hydrocarbons (PAHs),
+polychlorinated biphenyls (PCBs), organochlorine pesticides, dioxins and furans,
+and organotins.  These contaminants are all persistent in the marine
+environment.
 
 # Load Libraries
-
-``` r
+```{r load_libraries}
 library(tidyverse)
-#> Warning: package 'tidyverse' was built under R version 4.0.5
-#> -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
-#> v ggplot2 3.3.5     v purrr   0.3.4
-#> v tibble  3.1.6     v dplyr   1.0.7
-#> v tidyr   1.1.4     v stringr 1.4.0
-#> v readr   2.1.0     v forcats 0.5.1
-#> Warning: package 'ggplot2' was built under R version 4.0.5
-#> Warning: package 'tidyr' was built under R version 4.0.5
-#> Warning: package 'dplyr' was built under R version 4.0.5
-#> Warning: package 'forcats' was built under R version 4.0.5
-#> -- Conflicts ------------------------------------------ tidyverse_conflicts() --
-#> x dplyr::filter() masks stats::filter()
-#> x dplyr::lag()    masks stats::lag()
 library(readxl)
 library(knitr)
-#> Warning: package 'knitr' was built under R version 4.0.5
 
 # library(GGally)
 
@@ -70,11 +46,9 @@ library(LCensMeans)
 ```
 
 # Load Data
-
 ## Folder References
-
-``` r
-sibfldnm <- 'Derived_Data'
+```{r folder_refs}
+sibfldnm <- 'Data'
 parent   <- dirname(getwd())
 sibling  <- file.path(parent,sibfldnm)
 niecefldnm <- 'Data_Subsets'
@@ -85,8 +59,7 @@ dir.create(file.path(getwd(), 'figures'), showWarnings = FALSE)
 ```
 
 ## Sums Data
-
-``` r
+```{r load_sums_data}
 sums_data <- read_csv(file.path(niece,fn),
                       col_types = cols(.default = col_character(),
                                         Sample_Year = col_double(),
@@ -106,46 +79,37 @@ sums_data <- read_csv(file.path(niece,fn),
 ```
 
 ### Sums Data Caveates
+Sums are defined in Table 4 of the Ramboll report, and summarized in the
+'sumGroups.xlsx' file.
 
-See the “Review\_Data.Rmd” and “Review\_Sums\_Data.Rmd” files for
-details.
+The metadata is not entirely clear, but it appears (from examining the Access
+database) that these sums omit non-detects, effectively equating non-detects to
+zero. That is inconsistent with how we  handled non-detects in the other
+toxics data sets. Omitting the non-detects in this way biases results upward,
+with the effect larger when there are many non-detects.
 
-Sums are defined in Table 4 of the Ramboll report, available in the
-“2017 Casco Bay Sediment Report Tables FINAL.xlsx” file in the
-“Original\_Data” folder, and (implicitly) in the “SumGroups.xlsx” file
-in the same folder.
+Many observations from 2010 and 2011 are zeros or NAs, because of high detection
+limits. This is especially  problem for data on Pesticides, PCBs, and Butyltins
+in 2010 and 2011.  Effectively, we have no data on PCBs and Pesticides, and very
+little data on Butyltins from 2010 and 2011.
 
-**The metadata is not entirely clear, but it appears (from examining the
-Access database) that these sums omit non-detects, effectively equating
-non-detects to zero. That is inconsistent with how we handled
-non-detects in several other toxics data sets, where we have been using
-maximum likelihood estimators of expected values.**
+Because of different analytic methods used in different years, sums include a
+relatively small consistent subset of parameters, so sums reported here may not 
+be fully compatible with available benchmarks.
 
-Because of different analytic methods used in different years, sums
-include a relatively small consistent subset of parameters, so they may
-not be fully compatible with available benchmarks.
+Ramboll standardized units in the Access database, so, most sums are expressed
+in ng/g dry weight (~ ppb). The Dioxins and Furans are expressed in ng/kg, or
+pg/g or approximately parts per trillion.  To simplify graphics, we re-express
+the Dioxin and Furan values in PPB, below.  
 
-Many observations from 2010 and 2011 are zeros or NAs, because of high
-detection limits. This is especially problem for data on Pesticides,
-PCBs, and Butyltins in 2010 and 2011. Effectively, we have no data on
-PCBs and Pesticides, and very little data on Butyltins from 2010 and
-2011.
-
-Ramboll standardized units in the Access database, so, most sums are
-expressed in ng/g dry weight (\~ ppb). The Dioxins and Furans are
-expressed in ng/kg, or pg/g or approximately parts per trillion. To
-simplify graphics, we re-express the Dioxin and Furan values in PPB,
-below.
-
-There are no SQuiRTs for Dioxins and Furans. Instead, Ramboll also
-expressed them in TEQ – toxic equivalents. Toxic equivalents provide a
-way to estimate the cumulative toxic effect of a mixture of related
-chemicals by weighting each compound by its relative toxic effect,
-compared to some reference compound (conventionally TCDD).
+There are no SQuiRTs for Dioxins and Furans. Instead, Ramboll also expressed
+them in TEQ -- Toxic equivalents.  Toxic equivalents provide a way to estimate the
+cumulative toxic effect of a mixture of related chemicals by weighting each
+compound by its relative toxic effect, compared to some reference compound
+(conventionally TCDD).
 
 ### Change Factor Levels
-
-``` r
+```{r change_factor_levels}
 sums_data <- sums_data %>%
 
   mutate(Parameter = factor(Parameter,
@@ -178,11 +142,9 @@ sums_data <- sums_data %>%
 ```
 
 ### Delete Unused Parameters
-
-To simplify presentation for State of Casco Bay, we will not report all
-totals. we remove unused data here.
-
-``` r
+To simplify presentation for State of Casco Bay, we will not report all totals.
+we remove unused data here.
+```{r unused_parms}
 sums_data <- sums_data %>%
   filter(! Parameter %in% c("Chlordanes", "High MW PAHs",
                             "Low MW PAHs", "Pesticides")) %>%
@@ -196,8 +158,7 @@ sums_data <- sums_data %>%
 ```
 
 ### Reexpress Dioxins and Furans in PPB
-
-``` r
+```{r rescale_to_ppb}
 sums_data <- sums_data %>%
   mutate(Result = if_else(Parameter == "Dioxins and Furans",
                           Result/1000,
@@ -205,19 +166,18 @@ sums_data <- sums_data %>%
 ```
 
 # Define Color Scale
+One reviewer pointed to possible confusion because of use of red as a color
+for NA values, with a gray as one of our scale colors.  That came from use of
+our `cbep_colors()` color function.  They suggested reversing those color
+choices.  Another alternative would be to use a portion of our `cbep_colors2()`
+function's sequential color range.  But the latter choice is complicated, as the
+sequential colors are sometimes fairly similar, despite being spread out
+on a luminance scale.
 
-One reviewer pointed to possible confusion because of use of red as a
-color for NA values, with a gray as one of our scale colors. That came
-from use of our `cbep_colors()` color function. They suggested reversing
-those color choices. Another alternative would be to use a portion of
-our `cbep_colors2()` function’s sequential color range. But the latter
-choice is complicated, as the sequential colors are sometimes fairly
-similar, despite being spread out on a luminance scale.
-
-We follow the reviewer’s suggestion, and create a color scale for these
+We follow the reviewer's suggestion, and create a color scale for these
 graphics.
 
-``` r
+```{r define_colors}
 # First line is not necessary, but we like to keep color formats consistent....
 fb <- rgb(t(col2rgb('firebrick')), maxColorValue = 255)
 tox_colors <- c(cbep_colors()[1:2], fb)
@@ -225,44 +185,14 @@ na_color <- cbep_colors()[3]
 rm(fb)
 ```
 
-# Preliminary Graphics
-
-``` r
-sums_data %>%
-  ggplot(aes(x = Era, y = Result, color = LVL)) +
-  geom_jitter() +
-  facet_wrap(~Parameter) +
-  theme_cbep(base_size = 10) +
-  scale_y_log10(breaks = scales::trans_breaks("log10", function(x) 100^x),
-              labels = scales::trans_format("log10", scales::math_format(10^.x)))
-#> Warning: Removed 230 rows containing missing values (geom_point).
-```
-
-<img src="Graphics_Sums_files/figure-gfm/prelim_graphic-1.png" style="display: block; margin: auto;" />
-
-``` r
-sums_data %>%
-  ggplot(aes(x = Region, y = Result, color = LVL)) +
-  geom_jitter() +
-  facet_wrap(~Parameter, ncol = 5, ) +
-  theme_cbep(base_size = 10) +
-  scale_y_log10(breaks = scales::trans_breaks("log10", function(x) 100^x),
-              labels = scales::trans_format("log10", scales::math_format(10^.x))) +
-  theme(axis.text.x = element_text(angle = 90)) +
-  theme(legend.position = 'bottom')
-#> Warning: Removed 230 rows containing missing values (geom_point).
-```
-
-<img src="Graphics_Sums_files/figure-gfm/prelimi_graphic_wide-1.png" style="display: block; margin: auto;" />
 
 # Regional Graphics
+To make graphics comparable to the ones produced for the Portland Harbor Toxics,
+we should focus on "Total PAHs", "Total PCBs", and "DDT Residues".  It's not
+obvious whether we should prepare panels by region or by parameter, so we try
+both.
 
-To make graphics comparable to the ones produced for the Portland Harbor
-Toxics, we should focus on “Total PAHs”, “Total PCBs”, and “DDT
-Residues”. It’s not obvious whether we should prepare panels by region
-or by parameter, so we try both.
-
-``` r
+```{r three_organics_graphic, fig.width = 7, fig.height = 5}
 sums_data %>%
   filter(Parameter %in%
            c("Total PAHs", "Total PCBs", "DDT Residues")) %>%
@@ -287,29 +217,23 @@ sums_data %>%
   
   theme(axis.text.x = element_text(angle = 90, vjust = 0.25, hjust = 1)) +
   theme(legend.position = 'bottom')
-#> Warning: Removed 163 rows containing missing values (geom_point).
-```
-
-<img src="Graphics_Sums_files/figure-gfm/three_organics_graphic-1.png" style="display: block; margin: auto;" />
-
-``` r
   
 #ggsave('figures/threeorganics.pdf', device = cairo_pdf, width = 7, height = 5)
+
 ```
 
-That DDT outlier deserves investigation. It is from a 2001 sample from
-the National Coastal Condition Assessment (NCCA). We checked in the
-on-line data for the NCCA, and confirmed that the value shown here is
-correct, despite being substantially higher than other DDT data in the
-“Outer Bay” Region. Investigating further, we find that this site is
-close inshore near Cape Elizabeth, on the edge of Pond Cove. Portions of
-Cape Elizabeth have a history of agricultural use, and it is not
-unlikely that runoff from the region’s abandoned or active agricultural
-lands might carry excess DDT residues compared to other Casco Bay
-locations. We believe these data are correct, both regarding magnitude
-and location.
+That DDT outlier deserves investigation.  It is from a 2001 sample from the
+National Coastal Condition Assessment (NCCA).  We checked in the on-line data
+for the NCCA, and confirmed that the value shown here is correct, despite being
+substantially higher than other DDT data in the "Outer Bay" Region.
+Investigating further, we find that this site is close inshore near Cape
+Elizabeth, on the edge of Pond Cove.  Portions of Cape Elizabeth have a history
+of agricultural use, and it is not unlikely that runoff from the region's
+abandoned or active agricultural lands might carry excess DDT residues compared
+to other Casco Bay locations.  We believe these data are correct, both regarding
+magnitude and location. 
 
-``` r
+```{r four_organics_graphics, fig.width = 7, fig.height = 4}
 sums_data %>%
   filter(Parameter %in%
            c("Total PAHs", "Total PCBs", "DDT Residues",
@@ -335,17 +259,12 @@ sums_data %>%
   
   theme(axis.text.x = element_text(angle = 90, vjust = 0.25, hjust = 1)) +
   theme(legend.position = 'bottom')
-#> Warning: Removed 163 rows containing missing values (geom_point).
-```
-
-<img src="Graphics_Sums_files/figure-gfm/four_organics_graphics-1.png" style="display: block; margin: auto;" />
-
-``` r
   
 #ggsave('figures/fourorganics.pdf', device = cairo_pdf, width = 7, height = )
+
 ```
 
-``` r
+```{r five_regions, fig.width = 7, fig.height = 4}
 sums_data %>%
   ggplot(aes(x = Parameter, y = Result)) +
   geom_jitter(aes(color = LVL), size = 2, alpha = 0.35,
@@ -365,18 +284,11 @@ sums_data %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.25, hjust = 1)) +
   theme(legend.position = 'bottom',
         panel.border = element_rect(fill = NA, size = 0.25))
-#> Warning: Removed 230 rows containing missing values (geom_point).
-```
-
-<img src="Graphics_Sums_files/figure-gfm/five_regions-1.png" style="display: block; margin: auto;" />
-
-``` r
 ggsave('figures/five_regions_by_Region.pdf', device = cairo_pdf,
        width = 7, height = 4)
-#> Warning: Removed 230 rows containing missing values (geom_point).
 ```
 
-``` r
+```{r five_regions_by_parm, fig.width = 7, fig.height = 3.5}
 sums_data %>%
   ggplot(aes(x = Region, y = Result)) +
   geom_jitter(aes(color = LVL), size = 2, alpha = 0.35, 
@@ -397,24 +309,18 @@ sums_data %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.35, hjust = 1)) +
   theme(legend.position = 'bottom',
         panel.border = element_rect(fill = NA, size = 0.25))
-#> Warning: Removed 230 rows containing missing values (geom_point).
-```
 
-<img src="Graphics_Sums_files/figure-gfm/five_regions_by_parm-1.png" style="display: block; margin: auto;" />
-
-``` r
 ggsave('figures/five_regions_by_parameter.pdf', device = cairo_pdf, width = 7, height = 3.5)
-#> Warning: Removed 230 rows containing missing values (geom_point).
 ```
 
-We don’t have sufficient detections to show a similar graphic for just
-the 2010s. The Ramboll study treated non-detects as missing, thus
-biasing estimation of sums, and failing to provide values to graph for
-many observations from recent years, when non-detects were common. We
-have chosen not to recalculate totals, to minimize changes from the
-Ramboll report, but these graphics show why that may be problematic.
+We don't have sufficient detections to show a similar graphic for just the
+2010s. The Ramboll study treated non-detects as missing, thus biasing estimation
+of sums, and failing to provide values to graph for many observations from
+recent years, when non-detects were common.  We have chosen not to recalculate
+totals, to minimize changes from the Ramboll report, but these graphics show why
+that may be problematic.
 
-``` r
+```{r five_region_by_parm_recent, fig.width = 7, fig.height = 3.5}
 sums_data %>%
   filter(Sample_Year  > 2005) %>%
   ggplot(aes(x = Region, y = Result)) +
@@ -436,18 +342,12 @@ sums_data %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.25, hjust = 1)) +
   theme(legend.position = 'bottom',
         panel.border = element_rect(fill = NA, size = 0.25))
-#> Warning: Removed 215 rows containing missing values (geom_point).
-```
 
-<img src="Graphics_Sums_files/figure-gfm/five_region_by_parm_recent-1.png" style="display: block; margin: auto;" />
-
-``` r
 #ggsave('figures/five_regions_by_parameter_recent.pdf', device = cairo_pdf, width = 7, height = 3.5)
 ```
 
 # Trend Graphics
-
-``` r
+```{r trend_plot_base, fig.width = 7, fig.height = 3.5}
 plt <- sums_data %>%
   ggplot(aes(x = Sample_Year, y = Result)) +
   geom_point(aes(color = LVL), size = 2, alpha = 0.35) +
@@ -473,30 +373,23 @@ plt <- sums_data %>%
 plt+
    geom_smooth(method = 'lm', se = FALSE, color = cbep_colors()[3],
               lwd = 0.5, lty = 2)
-#> `geom_smooth()` using formula 'y ~ x'
-#> Warning: Removed 230 rows containing non-finite values (stat_smooth).
-#> Warning: Removed 230 rows containing missing values (geom_point).
 ```
 
-<img src="Graphics_Sums_files/figure-gfm/trend_plot_base-1.png" style="display: block; margin: auto;" />
-
 ## Add Only Selected Trendlines
+We should NOT show trend lines for:
+*  DDT -- trend not significant , and few detects in 2010
+*  PCBs -- few detects in 2010, so stop regression line in 2002.
 
-We should NOT show trend lines for: \* DDT – trend not significant , and
-few detects in 2010 \* PCBs – few detects in 2010, so stop regression
-line in 2002.
+Arguably, a trend line is potentially misleading for Dioxins and Furans as well,
+since the "trend" all occurs between 2000 and 2010, but we'll leave that in as
+the graphic makes that clear.
 
-Arguably, a trend line is potentially misleading for Dioxins and Furans
-as well, since the “trend” all occurs between 2000 and 2010, but we’ll
-leave that in as the graphic makes that clear.
-
-We can build a data frame to control where lines are drawn as follows.
-We run linear models, extract coefficients (or predictions), calculate
-predictions, and plot.
+We can build a data frame to control where lines are drawn as follows.  We run
+linear models, extract coefficients (or predictions), calculate predictions,
+and plot.
 
 ## Calculate Regression Line Points
-
-``` r
+```{r calc_regression_lines}
   slope_and_intercept <- sums_data %>%
   
   # Remove DDT data, for which we want no line
@@ -517,7 +410,7 @@ predictions, and plot.
   ungroup(Parameter)
 ```
 
-``` r
+```{r build_predicts}
 predicts <- slope_and_intercept %>%
   # add upper and lower limits for regression lines
   mutate(lwr = 1990, upr = if_else(Parameter == "Total PCBs", 2002, 2011)) %>%
@@ -526,15 +419,12 @@ predicts <- slope_and_intercept %>%
   mutate(predict = exp(intercept + slope * Year))
 ```
 
-``` r
+```{r trend_graphic_final, fig.width = 7, fig.height = 3.5}
 plt + geom_line(aes(Year, predict), data = predicts, lwd = 0.5, lty = 2)
-#> Warning: Removed 230 rows containing missing values (geom_point).
-```
-
-<img src="Graphics_Sums_files/figure-gfm/trend_graphic_final-1.png" style="display: block; margin: auto;" />
-
-``` r
 ggsave('figures/five_organics_trends.pdf',
        device = cairo_pdf, width = 7, height = 3.5)
-#> Warning: Removed 230 rows containing missing values (geom_point).
 ```
+
+
+
+

@@ -10,13 +10,9 @@ Revised October 19, 2020
     -   [Metals Data](#metals-data)
         -   [Units](#units)
         -   [Change Factor Levels](#change-factor-levels)
--   [Preliminary Graphic](#preliminary-graphic)
 -   [Delete Unused Parameters](#delete-unused-parameters)
--   [Revised Preliminary Graphic](#revised-preliminary-graphic)
--   [Regional Graphics](#regional-graphics)
-    -   [Initial version](#initial-version)
-    -   [Ordered by Metal
-        Concetrations](#ordered-by-metal-concetrations)
+-   [Metals by Region](#metals-by-region)
+-   [Metals by Metal](#metals-by-metal)
 -   [Trend Graphics](#trend-graphics)
     -   [Initial Draft](#initial-draft)
     -   [Add Statistically Significant
@@ -47,11 +43,11 @@ persistent in the marine environment.
 
 ``` r
 library(tidyverse)
-#> -- Attaching packages --------------------------------------- tidyverse 1.3.0 --
-#> v ggplot2 3.3.3     v purrr   0.3.4
-#> v tibble  3.0.5     v dplyr   1.0.3
-#> v tidyr   1.1.2     v stringr 1.4.0
-#> v readr   1.4.0     v forcats 0.5.0
+#> -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
+#> v ggplot2 3.3.5     v purrr   0.3.4
+#> v tibble  3.1.6     v dplyr   1.0.7
+#> v tidyr   1.1.4     v stringr 1.4.0
+#> v readr   2.1.1     v forcats 0.5.1
 #> -- Conflicts ------------------------------------------ tidyverse_conflicts() --
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
@@ -72,7 +68,7 @@ library(LCensMeans)
 ## Folder References
 
 ``` r
-sibfldnm <- 'Derived_Data'
+sibfldnm <- 'Data'
 parent   <- dirname(getwd())
 sibling  <- file.path(parent,sibfldnm)
 niecefldnm <- 'Data_Subsets'
@@ -108,16 +104,8 @@ metals_data <- read_csv(file.path(niece,fn),
 
 ### Units
 
-See the “Review\_Data.Rmd” for details.
-
 Ramboll Standardized units in the Access database, so, concentrations of
 metals are expressed in *μ**g*/*g* dry weight (\~ ppm).
-
-There are no SQuiRTs for Dioxins and Furans. Instead, Ramboll also
-expressed them in TEQ – Tox equivalents. Toxic equivalents provide a way
-to estimate the cumulative toxic effect of a mixture of related
-chemicals by weighting each compound by its relative toxic effect,
-compared to some reference compound (conventionally TCDD).
 
 ### Change Factor Levels
 
@@ -132,30 +120,16 @@ metals_data <- metals_data %>%
                                             "Cape Small")))
 ```
 
-# Preliminary Graphic
-
-``` r
-metals_data %>%
-  ggplot(aes(x = Era, y = Result, color = LVL)) +
-  geom_jitter() +
-  facet_wrap(~Parameter) +
-  theme_cbep(base_size = 10) +
-  scale_y_log10(breaks = scales::trans_breaks("log10", function(x) 100^x),
-              labels = scales::trans_format("log10", scales::math_format(10^.x)))
-#> Warning: Removed 96 rows containing missing values (geom_point).
-```
-
-<img src="Graphics_Metals_files/figure-gfm/unnamed-chunk-2-1.png" style="display: block; margin: auto;" />
-
 # Delete Unused Parameters
 
 To simplify presentation for State of Casco Bay, we will not report all
-metals we remove unused data here. For more careful analysis, we may
-want to compare concentrations of some metals to concentrations of iron
-and aluminum, which are largely naturally occurring, and reflect mineral
-sediment deposition. We retain them for now, for reusability of code,
-although we are unlikely to incorporate them in State of Casco Bay
-graphics,
+metals. we remove unused data here.
+
+For more careful analysis, we may want to compare concentrations of some
+metals to concentrations of iron and aluminum, which are largely
+naturally occurring, and reflect mineral sediment deposition. We retain
+aluminum and iron for now, for reusability of code, although we are
+unlikely to incorporate them in State of Casco Bay graphics.
 
 ``` r
 metals_data <- metals_data %>%
@@ -171,70 +145,10 @@ Now, we remove Aluminum and Iron
   mutate(Parameter = factor(Parameter))
 ```
 
-# Revised Preliminary Graphic
+# Metals by Region
 
-``` r
-metals_data %>%
-  ggplot(aes(x = Sample_Year, y = Result, color = LVL)) +
-  geom_point(alpha = 0.25) +
-  facet_wrap(~Parameter) +
-  theme_cbep(base_size = 10) +
-  theme(legend.position = 'bottom') +
-  scale_y_log10(breaks = scales::trans_breaks("log10", function(x) 100^x),
-              labels = scales::trans_format("log10", scales::math_format(10^.x)))
-```
-
-<img src="Graphics_Metals_files/figure-gfm/unnamed-chunk-5-1.png" style="display: block; margin: auto;" />
-
-``` r
-metals_data %>%
-  ggplot(aes(x = Region, y = Result, color = LVL)) +
-  geom_point() +
-  facet_wrap(~Parameter ) +
-  theme_cbep(base_size = 10) +
-  scale_y_log10(breaks = scales::trans_breaks("log10", function(x) 100^x),
-              labels = scales::trans_format("log10", scales::math_format(10^.x))) +
-  theme(axis.text.x = element_text(angle = 90)) +
-  theme(legend.position = 'bottom')
-```
-
-<img src="Graphics_Metals_files/figure-gfm/unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
-
-# Regional Graphics
-
-## Initial version
-
-``` r
-metals_data %>%
-  ggplot(aes(x = Parameter, y = Result)) +
-  geom_point(aes(color = LVL), size = 2, alpha = 0.5) +
-  
-  scale_y_log10(labels=scales::label_comma(accuracy = 0.1)) +
-  scale_color_manual(name = '', values = cbep_colors(), na.value = "firebrick",
-                     labels = c('Below ERL','Between ERL and ERM',
-                                     'Above ERM', "No Reference Defined")) +
-  
-  facet_wrap(~Region, ncol = 5) +
-  
-  theme_cbep(base_size = 12) +
-
-  ylab('Concentration (ppm)') +
-  xlab('') +
-  
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.25, hjust = 1)) +
-  theme(legend.position = 'bottom',
-        panel.border = element_rect(fill = NA, size = 0.25))
-```
-
-<img src="Graphics_Metals_files/figure-gfm/unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
-
-``` r
-#ggsave('figures/metals_five_regions.pdf', device = cairo_pdf, width = 7, height = 5)
-```
-
-## Ordered by Metal Concetrations
-
-O.K. That’s confusing without ordering the metals.
+This is much easier to interpret if the metals are ordered by metal
+concentrations.
 
 ``` r
 metals_data %>%
@@ -246,20 +160,17 @@ metals_data %>%
   scale_color_manual(name = '', values = cbep_colors(), na.value = "firebrick",
                      labels = c('Below ERL','Between ERL and ERM',
                                      'Above ERM', "No Reference Defined")) +
-  
   facet_wrap(~Region, ncol = 5) +
-  
   theme_cbep(base_size = 12) +
-
   ylab('Concentration (ppm)') +
   xlab('') +
-  
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.25, hjust = 1)) +
+  theme(axis.text.x = element_text(size = 8, angle = 90, 
+                                   vjust = 0.25, hjust = 1)) +
   theme(legend.position = 'bottom',
         panel.border = element_rect(fill = NA, size = 0.25))
 ```
 
-<img src="Graphics_Metals_files/figure-gfm/unnamed-chunk-8-1.png" style="display: block; margin: auto;" />
+<img src="Graphics_Metals_files/figure-gfm/metals_by_Region-1.png" style="display: block; margin: auto;" />
 
 ``` r
 ggsave('figures/metals_five_regions.pdf', device = cairo_pdf, width = 7, height = 5)
@@ -268,34 +179,31 @@ ggsave('figures/metals_five_regions.pdf', device = cairo_pdf, width = 7, height 
 That’s pretty, but it makes it hard to compare Regions, which is the
 main point.
 
+# Metals by Metal
+
 ``` r
 metals_data %>%
  #mutate(Parameter = fct_reorder(Parameter,Result)) %>%
   ggplot(aes(x = Region, y = Result)) +
   geom_jitter(aes(color = LVL), width = 0.075, size = 1, alpha = 0.4) +
-  
   scale_y_log10(labels=scales::label_comma(accuracy = 0.1)) +
   scale_color_manual(name = '', values = cbep_colors(), na.value = "firebrick",
                      labels = c('Below ERL','Between ERL and ERM',
                                      'Above ERM', "No Reference Defined")) +
-  
   facet_wrap(~Parameter, ncol = 3, scales = 'free_y', strip.position = 'top') +
-  
   theme_cbep(base_size = 10) +
-
   ylab('Concentration (ppm)') +
   xlab('') +
-  
   theme(axis.text.x = element_text(angle = 90, vjust = 0.25, hjust = 1)) +
   theme(legend.position = 'bottom',
         panel.border = element_rect(fill = NA, size = 0.25)) +
   theme(strip.placement = 'inside')
 ```
 
-<img src="Graphics_Metals_files/figure-gfm/unnamed-chunk-9-1.png" style="display: block; margin: auto;" />
+<img src="Graphics_Metals_files/figure-gfm/unnamed-chunk-4-1.png" style="display: block; margin: auto;" />
 
 ``` r
- ggsave('figures/metals_parameters.pdf', device = cairo_pdf, width = 7, height = 5)
+ ggsave('figures/metals_parameters.pdf', device = cairo_pdf, width = 6, height = 5)
 ```
 
 # Trend Graphics
@@ -331,7 +239,7 @@ plt+
 #> `geom_smooth()` using formula 'y ~ x'
 ```
 
-<img src="Graphics_Metals_files/figure-gfm/unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
+<img src="Graphics_Metals_files/figure-gfm/unnamed-chunk-5-1.png" style="display: block; margin: auto;" />
 
 ## Add Statistically Significant Trendlines
 
@@ -380,7 +288,7 @@ predicts <- slope_and_intercept %>%
 plt + geom_line(aes(Year, predict), data = predicts, lwd = 0.5, lty = 2)
 ```
 
-<img src="Graphics_Metals_files/figure-gfm/unnamed-chunk-13-1.png" style="display: block; margin: auto;" />
+<img src="Graphics_Metals_files/figure-gfm/unnamed-chunk-8-1.png" style="display: block; margin: auto;" />
 
 ``` r
 ggsave('figures/metals_trends.pdf',

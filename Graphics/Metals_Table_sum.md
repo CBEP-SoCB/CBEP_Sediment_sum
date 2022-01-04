@@ -3,25 +3,25 @@ Developing a Table for Metals
 Curtis C. Bohlen, Casco Bay Estuary Partnership
 October 22, 2020
 
-  - [Introduction](#introduction)
-  - [Load Libraries](#load-libraries)
-  - [Load Data](#load-data)
-      - [Folder References](#folder-references)
-      - [Metals Data](#metals-data)
-          - [Change Factor Levels](#change-factor-levels)
-      - [Select Metals to Be Analyzed](#select-metals-to-be-analyzed)
-      - [Estimating Non-detects](#estimating-non-detects)
-  - [Robust Regression models](#robust-regression-models)
-      - [T-S Slopes](#t-s-slopes)
-      - [Check Significance with Kendall’s
+-   [Introduction](#introduction)
+-   [Load Libraries](#load-libraries)
+-   [Load Data](#load-data)
+    -   [Folder References](#folder-references)
+    -   [Metals Data](#metals-data)
+        -   [Change Factor Levels](#change-factor-levels)
+    -   [Select Metals to Be Analyzed](#select-metals-to-be-analyzed)
+    -   [Estimating Non-detects](#estimating-non-detects)
+-   [Robust Regression models](#robust-regression-models)
+    -   [T-S Slopes](#t-s-slopes)
+    -   [Check Significance with Kendall’s
         Tau](#check-significance-with-kendalls-tau)
-  - [Generating a Summary Table of
+-   [Generating a Summary Table of
     Metals](#generating-a-summary-table-of-metals)
-      - [Trend Words](#trend-words)
-      - [Region Model](#region-model)
-          - [Examine Pairwise
+    -   [Trend Words](#trend-words)
+    -   [Region Model](#region-model)
+        -   [Examine Pairwise
             Comparisons](#examine-pairwise-comparisons)
-          - [Hand-generated comparison
+        -   [Hand-generated comparison
             text](#hand-generated-comparison-text)
 
 <img
@@ -38,7 +38,8 @@ National Coastal Assessment (NCA) and National Coastal Condition
 Assessment (NCCA).
 
 Chemicals studied included a number of different metals. Here we develop
-a narrative table for the State of the Bay Report.
+a narrative table for the State of the Bay Report summarizing results of
+analysis of many metals.
 
 # Load Libraries
 
@@ -46,12 +47,12 @@ a narrative table for the State of the Bay Report.
 library(tidyverse)
 ```
 
-    ## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --
+    ## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
 
-    ## v ggplot2 3.3.2     v purrr   0.3.4
-    ## v tibble  3.0.3     v dplyr   1.0.2
-    ## v tidyr   1.1.2     v stringr 1.4.0
-    ## v readr   1.3.1     v forcats 0.5.0
+    ## v ggplot2 3.3.5     v purrr   0.3.4
+    ## v tibble  3.1.6     v dplyr   1.0.7
+    ## v tidyr   1.1.4     v stringr 1.4.0
+    ## v readr   2.1.1     v forcats 0.5.1
 
     ## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
     ## x dplyr::filter() masks stats::filter()
@@ -73,7 +74,7 @@ library(LCensMeans)
 ## Folder References
 
 ``` r
-sibfldnm <- 'Derived_Data'
+sibfldnm <- 'Data'
 parent   <- dirname(getwd())
 sibling  <- file.path(parent,sibfldnm)
 niecefldnm <- 'Data_Subsets'
@@ -188,8 +189,8 @@ We can conduct a robust regression, based on Theil-Sen slope estimators
 (actually a slightly more robust estimator by Siegel).
 
 We could not get the following to work inside a pipe or `lapply()` call,
-so we fell back on using a loop. Also, mblm does not like having a log
-transform in the model formula, so we had to move the log transform
+so we fell back on using a loop. Also, `mblm()` does not like having a
+log transform in the model formula, so we had to move the log transform
 outside the call.
 
 ``` r
@@ -247,14 +248,14 @@ rlm_slopes[sig_tau]
     ##      Cadmium     Chromium         Lead       Nickel         Zinc 
     ##  0.023733256 -0.008904760 -0.007323551 -0.008605040 -0.006956498
 
-So, we now end up with cadmium showing an increase, Chromium, Lead, and
+So, we end up with Cadmium showing an increase, Chromium, Lead, and
 Nickle declining, and other metals showing no trend.
 
 # Generating a Summary Table of Metals
 
 A graphic for metals will take up too much room in the report, so we
 want to generate a table summarizing results for metals. We want to
-indicate “Increaseing”, “Decreasing”, “No Trend” for each metal, and add
+indicate “Increasing”, “Decreasing”, “No Trend” for each metal, and add
 something about the fraction of observations exceeding thresholds in
 2010.
 
@@ -281,10 +282,10 @@ samples in 2010 exceeded the ERM values.
 
 The categories are defined as follows: \* Never: Never observed
 (frequency = 0)  
-\* Rare: \< 10%  
-\* Uncommon: \< 25%  
-\* Common: \<50%  
-\* Frequent \> 50%
+\* Rare: &lt; 10%  
+\* Uncommon: &lt; 25%  
+\* Common: &lt;50%  
+\* Frequent &gt; 50%
 
 ``` r
 tab1 <- metals_data %>%
@@ -303,11 +304,6 @@ tab1 <- metals_data %>%
                                       'Frequent')),
             `Exceeds ERL†` = if_else(has_ERL, as.character(labs), 'No ERL')) %>%
   select(-has_ERL, -num, -num_exceeds, -pct_exceeds, -labs)
-```
-
-    ## `summarise()` ungrouping output (override with `.groups` argument)
-
-``` r
 tab1
 ```
 
@@ -347,7 +343,7 @@ tab2 <- tibble(Parameter = mods$Parameter,
 ```
 
 And last, lets identify whether there are significant differences among
-Regions
+Regions.
 
 ## Region Model
 
@@ -359,10 +355,10 @@ mods <- mods %>%
 
 Here we pull the p value from the ANOVA table, rather than the summary,
 because we want to an overall test for inequality across all regions.
-’summary.lm()`provides an array, but`anova.lm()\` produces a data
-frame, with non-syntactic variable names.
+’summary.lm()`provides an array, but`anova.lm()\` produces a data frame,
+with non-syntactic variable names.
 
-See `Metals_Analysis_3.Rmd` for more in-depth look at methods and
+See `Metals_Analysis_sum.Rmd` for more in-depth look at methods and
 assumptions.
 
 ``` r
@@ -381,14 +377,15 @@ So almost all metals show differences by region.
 
 In `Metals_Analysis~3.Rmd`, we used the related `pwpp()` function for a
 graphical depiction of pairwise comparisons. We skip that here to save
-space.
+space. We use `emmeans()` to pull out pairwise comparisons in a nice
+summary form.
 
 ``` r
 compare <- list()
 for (n in seq_along(mods$Parameter)) {
   metal <- mods$Parameter[n]
   compare[[metal]] <- emmeans(mods$region_anova[[n]],
-                              ~ Region, type = 'Response')
+                              ~ Region)
 }
 mods$region_emm <- compare
 rm(metal, compare)
@@ -479,11 +476,11 @@ for (n in seq_along(mods$Parameter)) {
     ## 
     ## --------------------- Selenium ---------------------
     ##  Region     emmean    SE  df lower.CL upper.CL
-    ##  Inner Bay  -0.837 0.155 216   -1.142   -0.532
-    ##  West Bay   -1.091 0.159 216   -1.404   -0.779
+    ##  Inner Bay  -0.838 0.155 216   -1.143   -0.533
+    ##  West Bay   -1.092 0.159 216   -1.405   -0.779
     ##  East Bay   -0.581 0.184 216   -0.944   -0.217
     ##  Outer Bay  -0.971 0.180 216   -1.326   -0.616
-    ##  Cape Small -1.458 0.323 216   -2.095   -0.822
+    ##  Cape Small -1.457 0.323 216   -2.094   -0.821
     ## 
     ## Results are given on the log (not the response) scale. 
     ## Confidence level used: 0.95 
@@ -502,10 +499,10 @@ for (n in seq_along(mods$Parameter)) {
     ## --------------------- Mercury ---------------------
     ##  Region     emmean     SE  df lower.CL upper.CL
     ##  Inner Bay   -1.72 0.0833 217    -1.88    -1.56
-    ##  West Bay    -2.88 0.0855 217    -3.05    -2.71
-    ##  East Bay    -2.29 0.0993 217    -2.48    -2.09
+    ##  West Bay    -2.88 0.0854 217    -3.05    -2.71
+    ##  East Bay    -2.29 0.0992 217    -2.48    -2.09
     ##  Outer Bay   -2.78 0.0970 217    -2.97    -2.59
-    ##  Cape Small  -3.74 0.1681 217    -4.07    -3.40
+    ##  Cape Small  -3.73 0.1680 217    -4.07    -3.40
     ## 
     ## Results are given on the log (not the response) scale. 
     ## Confidence level used: 0.95 
@@ -516,7 +513,7 @@ for (n in seq_along(mods$Parameter)) {
     ##  West Bay    -1.57 0.0855 225    -1.74   -1.405
     ##  East Bay    -1.56 0.0993 225    -1.75   -1.360
     ##  Outer Bay   -1.87 0.0960 225    -2.06   -1.677
-    ##  Cape Small  -2.54 0.1421 225    -2.82   -2.258
+    ##  Cape Small  -2.54 0.1421 225    -2.82   -2.257
     ## 
     ## Results are given on the log (not the response) scale. 
     ## Confidence level used: 0.95
@@ -525,7 +522,7 @@ for (n in seq_along(mods$Parameter)) {
 
 We could not figure out an easy way to generate a summary description of
 the pairwise comparisons, so we generated text by hand, and read them
-into a data frame here so we can access them later to construct a table
+into a data frame here so we can access them later to construct a table.
 
 ``` r
 tab3 <- tribble(
@@ -556,18 +553,18 @@ cap = '† Rare: < 10%; Uncommon: < 25%; Common: <50%, Frequent > 50%'
 knitr::kable(tab, caption = cap)
 ```
 
-| Metal    | Exceeds ERL† | Trend      | Comparison of Regions                                         |
-| :------- | :----------- | :--------- | :------------------------------------------------------------ |
-| Arsenic  | Frequent     | Decreasing | Cape Small is low.                                            |
-| Cadmium  | Rare         | Increasing | Outer Bay is low; Cape Small is even lower.                   |
-| Chromium | Common       | Decreasing | Cape Small is lower than East Bay and West Bay.               |
-| Copper   | Rare         | Decreasing | Outer Bay is low; Cape Small even lower.                      |
-| Iron     | No ERL       | Decreasing | Cape Small is lower than East Bay and West Bay.               |
-| Lead     | Rare         | Decreasing | Cape Small is low; Inner Bay is high.                         |
-| Mercury  | Common       | No Trend   | Cape Small \< Outer Bay and West Bay \< East Bay \< Inner Bay |
-| Nickel   | Frequent     | Decreasing | Cape Small is low.                                            |
-| Selenium | No ERL       | Decreasing | No differences.                                               |
-| Silver   | Never        | Increasing | Cape Small is low; Inner Bay is high.                         |
-| Zinc     | Never        | Decreasing | Cape Small is low. Outer Bay lower than inner Bay.            |
+| Metal    | Exceeds ERL† | Trend      | Comparison of Regions                                               |
+|:---------|:-------------|:-----------|:--------------------------------------------------------------------|
+| Arsenic  | Frequent     | Decreasing | Cape Small is low.                                                  |
+| Cadmium  | Rare         | Increasing | Outer Bay is low; Cape Small is even lower.                         |
+| Chromium | Common       | Decreasing | Cape Small is lower than East Bay and West Bay.                     |
+| Copper   | Rare         | Decreasing | Outer Bay is low; Cape Small even lower.                            |
+| Iron     | No ERL       | Decreasing | Cape Small is lower than East Bay and West Bay.                     |
+| Lead     | Rare         | Decreasing | Cape Small is low; Inner Bay is high.                               |
+| Mercury  | Common       | No Trend   | Cape Small &lt; Outer Bay and West Bay &lt; East Bay &lt; Inner Bay |
+| Nickel   | Frequent     | Decreasing | Cape Small is low.                                                  |
+| Selenium | No ERL       | Decreasing | No differences.                                                     |
+| Silver   | Never        | Increasing | Cape Small is low; Inner Bay is high.                               |
+| Zinc     | Never        | Decreasing | Cape Small is low. Outer Bay lower than inner Bay.                  |
 
-† Rare: \< 10%; Uncommon: \< 25%; Common: \<50%, Frequent \> 50%
+† Rare: &lt; 10%; Uncommon: &lt; 25%; Common: &lt;50%, Frequent &gt; 50%

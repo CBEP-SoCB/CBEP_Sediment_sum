@@ -20,9 +20,8 @@ by under the auspices of EPA's the National Coastal Assessment (NCA) and
 National Coastal Condition Assessment (NCCA).
 
 Chemicals studied included a number of different metals.  Here we develop a 
-narrative table for the State of the Bay Report.
-
-
+narrative table for the State of the Bay Report summarizing results of analysis
+of many metals.
 
 # Load Libraries
 ```{r load_libraries}
@@ -40,13 +39,12 @@ library(LCensMeans)
 # Load Data
 ## Folder References
 ```{r folder_refs}
-sibfldnm <- 'Derived_Data'
+sibfldnm <- 'Data'
 parent   <- dirname(getwd())
 sibling  <- file.path(parent,sibfldnm)
 niecefldnm <- 'Data_Subsets'
 niece <- file.path(sibling,niecefldnm)
 fn <- "metals.csv"
-
 ```
 
 ## Metals Data
@@ -124,6 +122,7 @@ reknitting the notebook, but does not help when running the notebook
 interactively.  An alternative would be to save a version of the data (with
 estimated conditional means) after this step, and not recalculate, but that
 runs the risk of leaving in outdated data if upstream data is modified.
+
 ```{r cache = TRUE}
 metals_data <- metals_data %>%
   mutate(val = if_else(nd_flag, MDL, Result)) %>%
@@ -137,8 +136,9 @@ We can conduct a robust regression, based on Theil-Sen slope estimators
 (actually a slightly more robust estimator by Siegel).
 
 We could not get the following to work inside a pipe or `lapply()` call, so we
-fell back on using a loop.  Also, mblm does not like having a log transform
+fell back on using a loop.  Also, `mblm()` does not like having a log transform
 in the model formula, so we had to move the log transform outside the call.
+
 ```{r}
 mods <-metals_data %>%
   group_by(Parameter) %>%
@@ -170,6 +170,7 @@ There is some controversy regarding the appropriateness of different approaches
 to estimating statistical significance of these slopes. The default approach
 provided in the `mblm` package is not well supported.  Instead, we use the
 related Kendall's Tau, which is generally more conservative.
+
 ```{r}
 mods <- mods %>%
   mutate(tau_test = 
@@ -186,15 +187,13 @@ names(tau_p_vals) <- mods$Parameter
 sig_tau <- names(tau_p_vals[tau_p_vals<0.05])
 rlm_slopes[sig_tau]
 ```
-So, we now end up with cadmium showing an increase, Chromium, Lead, and Nickle
+So, we end up with Cadmium showing an increase, Chromium, Lead, and Nickle
 declining, and other metals showing no trend.
-
-
 
 # Generating a Summary Table of Metals
 A graphic for metals will take up too much room in the report, so we want to
 generate a table summarizing results for metals.  We want to indicate
-"Increaseing", "Decreasing", "No Trend" for each metal, and add something about
+"Increasing", "Decreasing", "No Trend" for each metal, and add something about
 the fraction of observations exceeding thresholds in 2010.
 
 ## Trend Words
@@ -259,13 +258,7 @@ tab2 <- tibble(Parameter = mods$Parameter,
   select(-is_sign, -is_decreasing)
 ```
 
-
-
-
-
-And last, lets identify whether there are significant differences among Regions
-
-
+And last, lets identify whether there are significant differences among Regions.
 
 ## Region Model
 ```{r}
@@ -279,7 +272,8 @@ we want to an overall test for inequality across all regions.  'summary.lm()`
 provides an array, but `anova.lm()` produces a data frame, with non-syntactic
 variable names.
 
-See `Metals_Analysis_3.Rmd` for more in-depth look at methods and assumptions.
+See `Metals_Analysis_sum.Rmd` for more in-depth look at methods and assumptions.
+
 ```{r} 
 region_p_vals = lapply(mods$region_anova, function(t) anova(t)$`Pr(>F)`[1])
 names(region_p_vals) <- mods$Parameter
@@ -287,17 +281,20 @@ names(region_p_vals) <- mods$Parameter
 (sig_region <- names(region_p_vals[region_p_vals<0.025]))
 
 ```
+
 So almost all metals show differences by region.
 
 ### Examine Pairwise Comparisons
 In `Metals_Analysis~3.Rmd`, we used the related `pwpp()` function for a
 graphical depiction of pairwise comparisons.  We skip that here to save space.
+We use `emmeans()` to pull out pairwise comparisons in a nice summary form.
+
 ```{r}
 compare <- list()
 for (n in seq_along(mods$Parameter)) {
   metal <- mods$Parameter[n]
   compare[[metal]] <- emmeans(mods$region_anova[[n]],
-                              ~ Region, type = 'Response')
+                              ~ Region)
 }
 mods$region_emm <- compare
 rm(metal, compare)
@@ -311,7 +308,8 @@ for (n in seq_along(mods$Parameter)) {
 ### Hand-generated comparison text
 We could not figure out an easy way to generate a summary description of the
 pairwise comparisons, so we generated text by hand, and read them into a data
-frame here so we can access them later to construct a table
+frame here so we can access them later to construct a table.
+
 ```{r}
 tab3 <- tribble(
 ~Parameter     , ~`Comparison of Regions`,
@@ -333,7 +331,6 @@ tab <- tab1 %>% left_join(tab2)  %>% left_join(tab3) %>%
   rename(Metal = Parameter)
 ```
 
-  
 ```{r}
 cap = '† Rare: < 10%; Uncommon: < 25%; Common: <50%, Frequent > 50%'
 knitr::kable(tab, caption = cap)
