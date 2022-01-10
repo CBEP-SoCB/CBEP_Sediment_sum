@@ -5,7 +5,7 @@
     style="position:absolute;top:10px;right:50px;" />
     
 All data is derived from is from the official data transmission from Ramboll
-Environ to CBEP in 2017.  Teh data was provided to CBEP at the completion of
+Environ to CBEP in 2017.  The data was provided to CBEP at the completion of
 Ramboll Environ's analysis of Casco Bay Sediment chemistry data.
 
 Ramboll produced a report for CBEP on their analysis of these data.  That report 
