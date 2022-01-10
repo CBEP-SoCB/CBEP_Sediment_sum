@@ -1,4 +1,9 @@
 # Sample Locations
+
+<img
+    src="https://www.cascobayestuary.org/wp-content/uploads/2014/04/logo_sm.jpg"
+    style="position:absolute;top:10px;right:50px;" />
+    
 The original (1991) sampling locations were selected by an expert group by
 placing dots on a map of Casco Bay to get sample locations distributed evenly in
 areas known to not have rocky substrate (and where, therefore, soft sediment

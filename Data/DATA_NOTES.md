@@ -1,4 +1,10 @@
-# Introduction
+# CBEP Sediment Toxics Data Notes
+
+<img
+    src="https://www.cascobayestuary.org/wp-content/uploads/2014/04/logo_sm.jpg"
+    style="position:absolute;top:10px;right:50px;" />
+
+## Introduction
 Casco Bay Estuary Partnership collected sediment samples in 1991, 1994, 2000,
 2001, 2002, 2010, and 2011 to look at concentrations of toxic contaminants in
 Casco Bay surface Sediments. These studies were complemented by data collected
@@ -10,7 +16,7 @@ polychlorinated biphenyls (PCBs), organochlorine pesticides, dioxins and furans,
 and organotins.  These contaminants are all persistent in the marine
 environment.
 
-## Sample Locations
+### Sample Locations
 The original (1991) sampling locations were selected by an expert group by
 placing dots on a map of Casco Bay to get sample locations distributed evenly in
 areas known to not have rocky substrate (and where, therefore, soft sediment
@@ -85,10 +91,10 @@ Places where samples were collected are presented as:
     
 2.  Substation -- Nominal Locations associated with stations. Substations
     aggregate multiple sampling events into groups by proximity. All
-    samples assigned to the  same Substation were collected within a radius of
+    samples assigned to the same Substation were collected within a radius of
     approximately 100 m.
 
 3.  Locations -- These provide more detailed estimates of location, with all
     observations associated with a single location collected within a distance 
-    of approximately 10 meters of one another.
+    of approximately 10 m of one another.
     

@@ -1,4 +1,9 @@
 # Data Sources
+
+<img
+    src="https://www.cascobayestuary.org/wp-content/uploads/2014/04/logo_sm.jpg"
+    style="position:absolute;top:10px;right:50px;" />
+    
 All data was derived from an Access database prepared by Ramboll Environ.
 The full database, called “Casco Bay Sediment Data 1991_2001.accdb” and dated
 February 1, 2017, is available from CBEP upon request.
